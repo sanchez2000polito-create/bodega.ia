@@ -1,0 +1,129 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Tasks template for the selected modernization assessment categories.",
+  "tasks": [
+    {
+      "type": "upgrade",
+      "id": "001-upgrade-java-version",
+      "description": "Upgrade Java Version",
+      "reason": "The assessment reports that the Java version is not the latest LTS.",
+      "requirements": "Upgrade the application runtime and Maven configuration to Java 25, following the Java upgrade guidelines. Addresses issues: Java Version is not the latest LTS.",
+      "dependencies": [],
+      "kbId": "java-version-upgrade",
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "upgrade",
+      "id": "002-upgrade-spring-boot",
+      "description": "Upgrade Spring Boot Version",
+      "reason": "The assessment reports that the Spring Boot version has reached the end of OSS support.",
+      "requirements": "Upgrade Spring Boot to a supported 4.x version compatible with the selected Java target. Addresses issues: Spring Boot Version Has Reached the End of OSS Support.",
+      "dependencies": [
+        "001-upgrade-java-version"
+      ],
+      "kbId": "spring-boot-upgrade",
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "upgrade",
+      "id": "003-upgrade-spring-framework",
+      "description": "Upgrade Spring Framework Version",
+      "reason": "The assessment reports that the Spring Framework version has reached the end of OSS support.",
+      "requirements": "Upgrade Spring Framework to a supported 7.x version and keep it compatible with the selected Spring Boot and Java versions. Addresses issues: Spring Framework Version Has Reached the End of OSS Support.",
+      "dependencies": [
+        "002-upgrade-spring-boot"
+      ],
+      "kbId": "spring-framework-upgrade",
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "transform",
+      "id": "004-secure-postgresql-managed-identity",
+      "description": "Secure Azure Database for PostgreSQL with Managed Identity",
+      "reason": "The assessment detects PostgreSQL usage.",
+      "requirements": "Prepare the application's PostgreSQL data access for Azure Database for PostgreSQL and managed identity authentication. Preserve existing database behavior. Addresses issues: PostgreSQL database found.",
+      "dependencies": [
+        "003-upgrade-spring-framework"
+      ],
+      "kbId": "mi-postgresql",
+      "skills": [
+        {
+          "name": "migration-mi-postgresql",
+          "location": "builtin"
+        }
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "transform",
+      "id": "005-migrate-jakarta-jpa-to-azure",
+      "description": "Migrate Jakarta JPA to Azure",
+      "reason": "The assessment detects Jakarta Persistence (JPA) API usage.",
+      "requirements": "Migrate the selected Jakarta Persistence usage for Azure compatibility while preserving existing persistence behavior. Addresses issues: Detects usage of Jakarta Persistence (JPA) APIs.",
+      "dependencies": [
+        "004-secure-postgresql-managed-identity"
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "security",
+      "id": "006-review-dependency-security",
+      "description": "Review and remediate dependency CVEs",
+      "reason": "Include a dependency-security safeguard in the modernization plan.",
+      "requirements": "Assess project dependencies for known CVEs and remediate findings that can be addressed without changing the selected modernization scope. Verify the resulting build and tests.",
+      "dependencies": [
+        "005-migrate-jakarta-jpa-to-azure"
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "containerization",
+      "id": "007-containerize-java-application",
+      "description": "Containerize Java Application for Container Readiness",
+      "reason": "The assessment reports that no Dockerfile was found.",
+      "requirements": "Make the Java application container-ready and create the missing Dockerfile. Addresses issues: No Dockerfile found.",
+      "dependencies": [
+        "006-review-dependency-security"
+      ],
+      "kbId": "containerization-copilot-agent",
+      "skills": [
+        {
+          "name": "containerization",
+          "location": "builtin"
+        }
+      ],
+      "dockerfilePath": "Dockerfile"
+    }
+  ],
+  "metadata": {
+    "planName": "selected-assessment-20261107",
+    "projectName": "cosmetics-api",
+    "language": "java",
+    "createdAt": "2026-11-07T16:58:27-05:00",
+    "version": "1.0"
+  }
+}
